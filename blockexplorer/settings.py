@@ -8,8 +8,12 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.7/ref/settings/
 """
 
+from psycopg2cffi import compat
+compat.register()
+
 import re
 import dj_database_url
+import raven
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
@@ -42,7 +46,7 @@ else:
 
 ALLOWED_HOSTS = [
         '127.0.0.1',
-        '0xify.com',
+        'www.0xify.com',
         'localhost'
         ]
 
@@ -77,6 +81,7 @@ INSTALLED_APPS = (
 )
 
 MIDDLEWARE_CLASSES = (
+    'raven.contrib.django.raven_compat.middleware.SentryResponseErrorIdMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -95,7 +100,21 @@ WSGI_APPLICATION = 'blockexplorer.wsgi.application'
 
 # Parse database configuration from $DATABASE_URL
 # http://stackoverflow.com/a/11100175
-DJ_DEFAULT_URL = os.getenv('DJ_DEFAULT_URL', 'sqlite:///sqlite.db')
+DB = {
+    'driver': os.environ.get("DB_DRIVER", None),
+    'user': os.environ.get("DB_USER", None),
+    'pass': os.environ.get("DB_PASS", None),
+    'host': os.environ.get("DB_HOST", None),
+    'port': os.environ.get("DB_PORT", None),
+    'name': os.environ.get("DB_NAME", None),
+}
+if not DB['user'] and not DB['pass'] and not DB['host'] and not DB['port']:
+    print("SQLite Mode")
+    DJ_DEFAULT_URL = os.getenv('DJ_DEFAULT_URL', u"%s://%s" % (DB['driver'], DB['name']))
+else:
+    print("PostgreSQL Mode")
+    DJ_DEFAULT_URL = os.getenv('DJ_DEFAULT_URL', u"%s://%s:%s@%s:%s/%s" % (DB['driver'], DB['user'], DB['pass'], DB['host'], DB['port'], DB['name']))
+
 DATABASES = {'default': dj_database_url.config(default=DJ_DEFAULT_URL)}
 
 # Internationalization
@@ -143,6 +162,8 @@ TEMPLATE_DIRS = (os.path.join(PROJECT_PATH, 'templates'),)
 PRODUCTION_DOMAIN = '0xify.com'
 STAGING_DOMAIN = 'TODO'
 SITE_DOMAIN = os.getenv('SITE_DOMAIN', PRODUCTION_DOMAIN)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = True
 
 # SSL and BASE_URL settings for Production, Staging and Local:
 if SITE_DOMAIN in (PRODUCTION_DOMAIN, STAGING_DOMAIN):
@@ -193,7 +214,7 @@ BLOCKCYPHER_API_KEY = os.getenv('BLOCKCYPHER_API_KEY')
 BLOCKCYPHER_PUBLIC_KEY = '35efab90903cbaf2551efe4134798e'
 
 POSTMARK_SMTP_SERVER = 'smtp.postmarkapp.com'
-POSTMARK_SENDER = 'Blockcypher Notifications <notifications@blockcypher.com>'
+POSTMARK_SENDER = 'AndrewBC <AndrewBC@0xify.com>'
 POSTMARK_TEST_MODE = os.getenv('POSTMARK_TEST_MODE', False)
 POSTMARK_API_KEY = os.getenv('POSTMARK_API_KEY')
 if not POSTMARK_API_KEY:
@@ -212,6 +233,13 @@ WNS_URL_BASE = 'https://pubapi.netki.com/api/wallet_lookup'
 
 DEFAULT_USER_UNIT = 'btc'
 
+RAVEN_CONFIG = {
+    'dsn': os.getenv('RAVEN_DSN'),
+    # If you are using git, you can also automatically configure the
+    # release based on the git info.
+    'release': raven.fetch_git_sha(os.path.dirname(os.pardir)),
+}
+
 # http://scanova.io/blog/engineering/2014/05/21/error-logging-in-javascript-and-python-using-sentry/
 LOGGING = {
     'version': 1,
@@ -219,7 +247,7 @@ LOGGING = {
     'disable_existing_loggers': True,
     'root': {
         'level': 'WARNING',
-        'handlers': ['sentry'],
+        'handlers': ['console'],
     },
     'formatters': {
         'verbose': {
@@ -228,8 +256,9 @@ LOGGING = {
     },
     'handlers': {
         'sentry': {
-            'level': 'ERROR',
+            'level': 'ERROR', # To capture more than ERROR, change to WARNING, INFO, etc.
             'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
+            'tags': {'custom-tag': 'x'},
         },
         'console': {
             'level': 'DEBUG',
@@ -238,6 +267,10 @@ LOGGING = {
         }
     },
     'loggers': {
+        'root': {
+            'level': 'WARNING',
+            'handlers': ['sentry'],
+        },
         'django.db.backends': {
             'level': 'ERROR',
             'handlers': ['console'],
