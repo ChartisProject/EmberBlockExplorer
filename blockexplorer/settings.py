@@ -41,15 +41,13 @@ else:
     DISABLE_DEBUG_TOOLBAR = True
 
 ALLOWED_HOSTS = [
-        'live.blockcypher.com',
-        'blockcypher.herokuapp.com',
         '127.0.0.1',
-        'miyagi-9570.herokussl.com',
+        '0xify.com',
         'localhost'
         ]
 
 ADMINS = (
-    ('Michael Flaxman', 'mflaxman@gmail.com'),
+    ('AndrewBC', 'dawn.gurl@gmail.com'),
 )
 
 IGNORABLE_404_URLS = (
@@ -97,7 +95,7 @@ WSGI_APPLICATION = 'blockexplorer.wsgi.application'
 
 # Parse database configuration from $DATABASE_URL
 # http://stackoverflow.com/a/11100175
-DJ_DEFAULT_URL = os.getenv('DJ_DEFAULT_URL', 'postgres://localhost')
+DJ_DEFAULT_URL = os.getenv('DJ_DEFAULT_URL', 'sqlite:///sqlite.db')
 DATABASES = {'default': dj_database_url.config(default=DJ_DEFAULT_URL)}
 
 # Internationalization
@@ -142,20 +140,20 @@ STATIC_ROOT = 'staticfiles'
 STATIC_URL = '/static/'
 TEMPLATE_DIRS = (os.path.join(PROJECT_PATH, 'templates'),)
 
-PRODUCTION_DOMAIN = 'live.blockcypher.com'
+PRODUCTION_DOMAIN = '0xify.com'
 STAGING_DOMAIN = 'TODO'
 SITE_DOMAIN = os.getenv('SITE_DOMAIN', PRODUCTION_DOMAIN)
 
 # SSL and BASE_URL settings for Production, Staging and Local:
 if SITE_DOMAIN in (PRODUCTION_DOMAIN, STAGING_DOMAIN):
     DEBUG_TOOLBAR_PATCH_SETTINGS = False
-    BASE_URL = 'https://%s' % SITE_DOMAIN
+    BASE_URL = 'https://%s/blockexplorer/' % SITE_DOMAIN
     # FIXME:
     # SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     MIDDLEWARE_CLASSES += ('blockexplorer.middleware.SSLMiddleware',)
 else:
-    BASE_URL = 'http://%s' % SITE_DOMAIN
+    BASE_URL = 'http://%s/blockexplorer/' % SITE_DOMAIN
     if not DISABLE_DEBUG_TOOLBAR:
         # FIXME: this should work on staging too, but I can't get it to work with gunicorn
         DEBUG_TOOLBAR_PATCH_SETTINGS = True
@@ -192,7 +190,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 )
 
 BLOCKCYPHER_API_KEY = os.getenv('BLOCKCYPHER_API_KEY')
-BLOCKCYPHER_PUBLIC_KEY = '31c49f33f35c85a8f4d9845a754f7c8e'
+BLOCKCYPHER_PUBLIC_KEY = '35efab90903cbaf2551efe4134798e'
 
 POSTMARK_SMTP_SERVER = 'smtp.postmarkapp.com'
 POSTMARK_SENDER = 'Blockcypher Notifications <notifications@blockcypher.com>'

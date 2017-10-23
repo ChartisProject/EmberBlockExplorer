@@ -21,11 +21,11 @@ class SentEmail(models.Model):
     subject = models.TextField(null=False, blank=False)
     unsub_code = models.CharField(max_length=64, blank=False, null=False, unique=True, db_index=True)
     unsubscribed_at = models.DateTimeField(null=True, blank=True, db_index=True)
-    unsub_ip = models.IPAddressField(null=True, blank=True, db_index=True)
+    unsub_ip = models.GenericIPAddressField(null=True, blank=True, db_index=True)
     unsub_ua = models.CharField(max_length=1024, blank=True, db_index=True)
     verif_code = models.CharField(max_length=64, blank=True, null=True, unique=True, db_index=True)
     verified_at = models.DateTimeField(null=True, blank=True, db_index=True)
-    verif_ip = models.IPAddressField(null=True, blank=True, db_index=True)
+    verif_ip = models.GenericIPAddressField(null=True, blank=True, db_index=True)
     verif_ua = models.CharField(max_length=1024, blank=True, db_index=True)
 
     # optional FK:
