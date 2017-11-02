@@ -1,7 +1,7 @@
 import re
 import random
 
-from blockexplorer.settings import BASE_URL
+from django.conf import settings
 
 
 def get_max_pages(num_items, items_per_page):
@@ -61,7 +61,7 @@ def simple_pw_generator(num_chars=10, eligible_chars='abcdefghjkmnpqrstuvwxyz234
     return ''.join(random.choice(eligible_chars) for x in range(num_chars))
 
 
-def uri_to_url(uri, base_url=BASE_URL):
+def uri_to_url(uri, base_url=settings.BASE_URL):
     """
     Take a URI and map it a URL:
     /foo -> http://coinsafe.com/foo

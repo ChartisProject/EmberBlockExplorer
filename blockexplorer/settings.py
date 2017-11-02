@@ -19,7 +19,7 @@ import raven
 import os
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
-PROJECT_PATH = os.path.dirname(os.path.dirname(__file__))
+PROJECT_PATH = BASE_DIR
 LOCALE_PATHS = (PROJECT_PATH + "/locale/",)
 
 # Quick-start development settings - unsuitable for production
@@ -70,14 +70,15 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+    'annoying',
     'raven.contrib.django.raven_compat',
     'crispy_forms',
     'storages',
-    'addresses',
-    'transactions',
-    'users',
-    'emails',
-    'services',
+    'apps.addresses',
+    'apps.transactions',
+    'apps.users',
+    'apps.emails',
+    'apps.services',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -131,7 +132,7 @@ USE_L10N = True
 USE_TZ = True
 
 AUTH_USER_MODEL = 'users.AuthUser'
-LOGIN_URL = '/login'
+LOGIN_URL = '/blocks/login'
 
 # Languages
 LANGUAGE_CODE = 'en-us'
@@ -156,25 +157,41 @@ STATICFILES_DIRS = (
     os.path.join(PROJECT_PATH, 'static'),
 )
 STATIC_ROOT = 'staticfiles'
-STATIC_URL = '/static/'
-TEMPLATE_DIRS = (os.path.join(PROJECT_PATH, 'templates'),)
+STATIC_URL = '/blocks/static/'
 
-PRODUCTION_DOMAIN = '0xify.com'
+TEMPLATES = [
+ {
+    'BACKEND': 'django.template.backends.django.DjangoTemplates',
+    'DIRS': [os.path.join(PROJECT_PATH, 'templates'),],
+    'APP_DIRS': True,
+    'OPTIONS': {
+        'context_processors': [
+            'django.template.context_processors.debug',
+            'django.template.context_processors.request',
+            'django.contrib.auth.context_processors.auth',
+            'django.contrib.messages.context_processors.messages',
+        ],
+    },
+ },
+]
+
+
+PRODUCTION_DOMAIN = 'www.0xify.com'
 STAGING_DOMAIN = 'TODO'
 SITE_DOMAIN = os.getenv('SITE_DOMAIN', PRODUCTION_DOMAIN)
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SECURE_SSL_REDIRECT = True
+SECURE_SSL_REDIRECT = False
 
 # SSL and BASE_URL settings for Production, Staging and Local:
 if SITE_DOMAIN in (PRODUCTION_DOMAIN, STAGING_DOMAIN):
     DEBUG_TOOLBAR_PATCH_SETTINGS = False
-    BASE_URL = 'https://%s/blockexplorer/' % SITE_DOMAIN
+    BASE_URL = 'https://%s/blocks/' % SITE_DOMAIN
     # FIXME:
     # SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     MIDDLEWARE_CLASSES += ('blockexplorer.middleware.SSLMiddleware',)
 else:
-    BASE_URL = 'http://%s/blockexplorer/' % SITE_DOMAIN
+    BASE_URL = 'http://%s/blocks/' % SITE_DOMAIN
     if not DISABLE_DEBUG_TOOLBAR:
         # FIXME: this should work on staging too, but I can't get it to work with gunicorn
         DEBUG_TOOLBAR_PATCH_SETTINGS = True

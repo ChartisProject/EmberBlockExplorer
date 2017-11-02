@@ -1,6 +1,6 @@
 from homepage.forms import UnitChoiceForm
 
-from blockexplorer.settings import DEFAULT_USER_UNIT
+from django.conf import settings
 
 from blockcypher.constants import UNIT_CHOICES
 
@@ -14,7 +14,7 @@ def get_user_units(request):
     user_units = request.session.get('user_units')
     if not user_units:
         user_units = DEFAULT_USER_UNIT
-        request.session['user_units'] = DEFAULT_USER_UNIT
+        request.session['user_units'] = settings.DEFAULT_USER_UNIT
 
     if user_units not in UNIT_CHOICES_SET:
         # shouldn't be possible, defensive check to fail gracefully

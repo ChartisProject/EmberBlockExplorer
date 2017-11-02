@@ -26,3 +26,4 @@ postmark
 git+https://github.com/themartorana/python-postmark.git
 simplejson
 eventlet
+django-annoying
